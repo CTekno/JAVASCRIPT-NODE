@@ -1,0 +1,181 @@
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <title></title>
+    </head>
+    
+    
+    <body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color:#a10d44;">
+            <a class="navbar-brand" href="/sample_data">&nbsp Home</a>
+            
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item">
+                    <div class="text text-white" style="padding-left: 180px;font-style: oblique; font-size:x-large;">&nbsp &nbsp &nbsp &nbsp &nbsp &nbsp Estoque Rápido 📦</div>
+                </li>
+                </ul>
+
+                <ul class="navbar-nav mr-auto" style="margin-left: auto;">
+                    <li class="nav-item">
+                        <a href="/logout" class="nav-link">♨ Sair &nbsp</a>
+                    </li>
+                </ul>
+    </nav>
+    
+    <div class="container-fluid">
+        <br>
+        <br>
+        
+            <% if(action == 'add') { %>
+
+                <div class="card position-absolute top-50 start-50 translate-middle">
+                <div class="card-header text-white "style="background-color:#ff2877">Adicionar produto</div>
+                <div class="card-body">
+                    <form method="POST" action="/sample_data/add_sample_data">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label>Produto</label>
+                                    <input type="text" name="nome" id="nome" class="form-control" />
+                                </div>
+                                <div class="mb-3">
+                                    <label>Descrição</label>
+                                    <input type="text" name="descricao" id="descricao" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label>Quantidade</label>
+                                    <input type="text" name="quantidade" id="quantidade" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <input type="submit" name="submit_button" class="btn text-white float-end" style="background-color:rgb(170, 4, 68)" value="Add" />
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <% } else if(action == 'edit') { %>
+            <div class="card">
+                <div class="card-header text-white "style="background-color:rgb(139, 0, 53)">Editar produto</div>
+                <div class="card-body">
+                    <form method="POST" action="/sample_data/edit/<%= sampleData.id %>">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label>Produtos</label>
+                                    <input type="text" name="nome" id="nome" class="form-control" value="<%= sampleData.nome %>" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label>Descrição</label>
+                                    <input type="text" name="descricao" id="descricao" class="form-control" value="<%= sampleData.descricao %>" />
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <input type="submit" name="submit_button" class="btn btn-primary" value="Edit" />
+                        </div>
+                    </form>
+                    <script>
+                    </script>
+                </div>
+            </div>
+            <% } else { %>
+                <% if(message.length > 0) { %>
+                <div class="alert alert-success position-absolute top-100 start-50 translate-middle">
+                    <%= message %>
+                </div>
+                <% } %>
+            <div class="card top-50 start-50 translate-middle" style="width: 60rem; margin-top: 210px; min-height: 340px; overflow-y: auto;">
+                <div class="card-header" style="background-color:#ff2877">
+                    <div class="row">
+                        <div class="col">
+                            <a href="/sample_data/add" class="btn btn-sm float-end text-white"  style="background-color:rgb(170, 4, 68)">Add</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive" style="max-height: 260px;">
+                        <table class="table table-hover">
+                            <th>Geral</th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <tr>
+                                <th>#</th>
+                                <th>Produtos</th>
+                                <th>Descrição</th>
+                                <th>Quantidade</th>
+                                <th>🗑</th>
+                            </tr>
+                            <%
+                            if(sampleData.length > 0)
+                            {
+                                sampleData.forEach(function(data){
+                            %>
+                            <script>
+                                document.addEventListener("DOMContentLoaded", function () {
+                                    
+                                    const countCells = document.querySelectorAll('td.count');
+                                    
+                                    countCells.forEach(function (cell, index) {
+                                        cell.textContent = index + 1;
+                                    });
+                                });
+                            </script>
+                            <tr>
+                                <td class="count" style="font-style:italic; font-weight: bold; background: -webkit-linear-gradient(#de0000, #3b0fec);
+                                -webkit-background-clip: text;
+                                -webkit-text-fill-color: transparent;"></td>
+                                <td><%= data.nome %></td>
+                                <td><%= data.descricao %></td>
+                                <td><%= data.CONTAGEM %></td>
+                                <td>
+                                    <!-- <a href="/sample_data/edit/<%= data.id %>" class="btn btn-primary btn-sm">Edit</a> -->
+                                    <a href="/sample_data/delete/<%= data.nome %>" class="btn btn-danger btn-sm">Deletar</a>
+                                </td>
+                            </tr>
+                            <%
+                                });
+                            }
+                            else
+                            {
+                            %>
+                            <tr>
+                                <td colspan="5">Nenhum dado</td>
+                            </tr>
+                            <tr>
+                                <td colspan="5">...</td>
+                            </tr>
+                            <tr>
+                                <td colspan="5">..</td>
+                            </tr>
+                            <tr>
+                                <td colspan="5">.</td>
+                            </tr>
+                            <%
+                            }
+                            %>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <% } %>
+
+        </div> 
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    </body>
+</html>
