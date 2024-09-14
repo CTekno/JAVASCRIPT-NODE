@@ -9,7 +9,7 @@ app.set('port', port);
 
 
 var server = http.createServer(app);
-
+module.exports = server;
 
 server.listen(port);
 server.on('error', onError);
