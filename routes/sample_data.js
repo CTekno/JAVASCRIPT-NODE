@@ -1,131 +1,128 @@
 var express = require('express');
 var router = express.Router();
-var database = require('../database');
+var supabase = require('../supabaseclient');
 
 // Listagem de dados
-router.get("/", function(request, response, next) {
+router.get("/", async function(request, response, next) {
+    try {
+        // Consulta RPC personalizada para obter dados agrupados e ordenados
+        const { data, error } = await supabase
+            .rpc('get_aggregated_data'); // Certifique-se de que a função está configurada corretamente no Supabase
 
-	var query = `
-		SELECT nome, descricao, COUNT(*) AS CONTAGEM
-		FROM palavras
-		GROUP BY nome, descricao
-		HAVING COUNT(*) >= 1
-		ORDER BY CONTAGEM DESC;
-	`;
-
-	database.all(query, [], function(error, data) {
-		if (error) {
-			throw error;
-		} else {
-			response.render('sample_data', {title: 'TMIT', action: 'list', sampleData: data, message: request.flash('success')});
-		}
-	});
+        if (error) {
+            throw error;
+        } else {
+            response.render('sample_data', {
+                title: 'TMIT',
+                action: 'list',
+                sampleData: data,
+                message: request.flash('success')
+            });
+        }
+    } catch (error) {
+        next(error);
+    }
 });
 
 // Adicionar dados
 router.get("/add", function(request, response, next) {
-	response.render("sample_data", {title: '', action: 'add'});
+    response.render("sample_data", {title: '', action: 'add'});
 });
 
 router.post("/add_sample_data", async function(request, response, next) {
-	var nome = request.body.nome.toLowerCase();
-	var quantidade = request.body.quantidade;
-	var descricao = request.body.descricao.toLowerCase();
+    var nome = request.body.nome.toLowerCase();
+    var quantidade = parseInt(request.body.quantidade, 10); // Converte para número inteiro
+    var descricao = request.body.descricao.toLowerCase();
 
-	// Valor padrão se o campo de nome estiver vazio
-	if (nome === '') {
-		nome = "Nada";
-		descricao = "Nada";
-	}
+    if (nome === '') {
+        nome = "Nada";
+        descricao = "Nada";
+    }
 
-	var query = `
-		INSERT INTO palavras (nome, descricao) 
-		VALUES (?, ?);
-	`;
+    const insertData = Array(quantidade).fill({ nome, descricao });
 
-	for (let i = 0; i < quantidade; i++) {
-		try {
-			await new Promise((resolve, reject) => {
-				database.run(query, [nome, descricao], function(error) {
-					if (error) {
-						reject(error);
-					} else {
-						resolve();
-					}
-				});
-			});
-		} catch (error) {
-			throw error;
-		}
-	}
+    try {
+        const { error } = await supabase
+            .from('palavras')
+            .insert(insertData);
 
-	request.flash('success', 'Produtos Adicionados');
-	response.redirect("/sample_data");
+        if (error) {
+            throw error;
+        } else {
+            request.flash('success', 'Produtos Adicionados');
+            response.redirect("/sample_data");
+        }
+    } catch (error) {
+        next(error);
+    }
 });
 
 // Editar dados
-router.get('/edit/:id', function(request, response, next) {
-	var id = request.params.id;
+router.get('/edit/:id', async function(request, response, next) {
+    var id = request.params.id;
 
-	var query = `SELECT * FROM palavras WHERE id = ?`;
+    try {
+        const { data, error } = await supabase
+            .from('palavras')
+            .select('*')
+            .eq('id', id)
+            .single();
 
-	database.get(query, [id], function(error, data) {
-		if (error) {
-			throw error;
-		} else {
-			response.render('sample_data', {title: 'Edit SQLite Table Data', action: 'edit', sampleData: data});
-		}
-	});
+        if (error) {
+            throw error;
+        } else {
+            response.render('sample_data', {
+                title: 'Edit SQLite Table Data',
+                action: 'edit',
+                sampleData: data
+            });
+        }
+    } catch (error) {
+        next(error);
+    }
 });
 
-router.post('/edit/:id', function(request, response, next) {
-	var id = request.params.id;
-	var nome = request.body.nome;
-	var descricao = request.body.descricao;
+router.post('/edit/:id', async function(request, response, next) {
+    var id = request.params.id;
+    var nome = request.body.nome;
+    var descricao = request.body.descricao;
 
-	var query = `
-		UPDATE palavras 
-		SET nome = ?, descricao = ?
-		WHERE id = ?
-	`;
+    try {
+        const { error } = await supabase
+            .from('palavras')
+            .update({ nome, descricao })
+            .eq('id', id);
 
-	database.run(query, [nome, descricao, id], function(error) {
-		if (error) {
-			throw error;
-		} else {
-			request.flash('success', 'Sample Data Updated');
-			response.redirect('/sample_data');
-		}
-	});
+        if (error) {
+            throw error;
+        } else {
+            request.flash('success', 'Sample Data Updated');
+            response.redirect('/sample_data');
+        }
+    } catch (error) {
+        next(error);
+    }
 });
-
-
 
 // Deletar dados
-router.get('/delete/:nome', function(request, response, next) {
+router.get('/delete/:nome', async function(request, response, next) {
     var nome = request.params.nome;
 
-    // Query para deletar apenas um registro com o nome especificado
-    var query = `
-        DELETE FROM palavras
-        WHERE id = (
-            SELECT id FROM palavras
-            WHERE nome = ?
-            LIMIT 1
-        )
-    `;
+    try {
+        const { error } = await supabase
+            .from('palavras')
+            .delete()
+            .eq('nome', nome);
 
-    database.run(query, [nome], function(error) {
         if (error) {
             throw error;
         } else {
             request.flash('success', 'Dados deletados');
             response.redirect("/sample_data");
         }
-    });
+    } catch (error) {
+        next(error);
+    }
 });
-
-
-
 
 module.exports = router;
